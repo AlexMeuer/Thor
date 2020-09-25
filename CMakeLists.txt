@@ -123,7 +123,7 @@ endif()
 # Macro to link SFML
 macro(thor_link_sfml THOR_TARGET)
 	# Note: in the future, should use target_link_libraries(${THOR_TARGET} SFML::audio SFML::graphics SFML::window SFML::system)
-	target_link_libraries(${THOR_TARGET} sfml-audio sfml-graphics sfml-window sfml-system)
+	target_link_libraries(${THOR_TARGET} ${SFML_LIBRARIES})
 endmacro()
 
 # Macro to link Thor (for examples)

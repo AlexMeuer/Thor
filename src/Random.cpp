@@ -31,27 +31,25 @@
 #include <ctime>
 #include <cassert>
 
-
 namespace thor
 {
-namespace
-{
+	namespace
+	{
 
 #ifdef THOR_USE_STD_RANDOMENGINE
 
-	// Use Mersenne Twister as default standard random engine
-	typedef std::mt19937 Engine;
+		// Use Mersenne Twister as default standard random engine
+		typedef std::mt19937 Engine;
 
 #else
 
-	// Random generator engine (Multiply With Carry)
-	// Many thanks to Volkard Henkel for the implementation.
-	class Engine
-	{
+		// Random generator engine (Multiply With Carry)
+		// Many thanks to Volkard Henkel for the implementation.
+		class Engine
+		{
 		public:
 			// Type definition for usage inside Std.Random
 			typedef sf::Uint32 result_type;
-
 
 		public:
 			// Constructor
@@ -61,7 +59,7 @@ namespace
 			}
 
 			// Return random number
-			sf::Uint32 operator() ()
+			sf::Uint32 operator()()
 			{
 				const sf::Uint64 a = 1967773755;
 
@@ -76,67 +74,66 @@ namespace
 			}
 
 			// Return minimal value (compliant to Std.Random)
-			static sf::Uint32 min()
+			constexpr static sf::Uint32 min()
 			{
 				return 0;
 			}
 
 			// Return maximal value (compliant to Std.Random)
-			static sf::Uint32 max()
+			constexpr static sf::Uint32 max()
 			{
 				return 0xffffffff;
 			}
 
 		private:
 			sf::Uint64 x;
-	};
+		};
 
 #endif // THOR_USE_STD_RANDOMENGINE
 
-	// Function initializing the engine and its seed at startup time
-	Engine createInitialEngine()
+		// Function initializing the engine and its seed at startup time
+		Engine createInitialEngine()
+		{
+			return Engine(static_cast<unsigned long>(std::time(nullptr)));
+		}
+
+		// Pseudo random number generator engine
+		Engine globalEngine = createInitialEngine();
+
+	} // namespace
+
+	// ---------------------------------------------------------------------------------------------------------------------------
+
+	int random(int min, int max)
 	{
-		return Engine( static_cast<unsigned long>(std::time(nullptr)) );
+		assert(min <= max);
+		std::uniform_int_distribution<int> distribution(min, max);
+		return distribution(globalEngine);
 	}
 
-	// Pseudo random number generator engine
-	Engine globalEngine = createInitialEngine();
+	unsigned int random(unsigned int min, unsigned int max)
+	{
+		assert(min <= max);
+		std::uniform_int_distribution<unsigned int> distribution(min, max);
+		return distribution(globalEngine);
+	}
 
-} // namespace
+	float random(float min, float max)
+	{
+		assert(min <= max);
+		std::uniform_real_distribution<float> distribution(min, max);
+		return distribution(globalEngine);
+	}
 
-// ---------------------------------------------------------------------------------------------------------------------------
+	float randomDev(float middle, float deviation)
+	{
+		assert(deviation >= 0.f);
+		return random(middle - deviation, middle + deviation);
+	}
 
-
-int random(int min, int max)
-{
-	assert(min <= max);
-	std::uniform_int_distribution<int> distribution(min, max);
-	return distribution(globalEngine);
-}
-
-unsigned int random(unsigned int min, unsigned int max)
-{
-	assert(min <= max);
-	std::uniform_int_distribution<unsigned int> distribution(min, max);
-	return distribution(globalEngine);
-}
-
-float random(float min, float max)
-{
-	assert(min <= max);
-	std::uniform_real_distribution<float> distribution(min, max);
-	return distribution(globalEngine);
-}
-
-float randomDev(float middle, float deviation)
-{
-	assert(deviation >= 0.f);
-	return random(middle-deviation, middle+deviation);
-}
-
-void setRandomSeed(unsigned long seed)
-{
-	globalEngine.seed(seed);
-}
+	void setRandomSeed(unsigned long seed)
+	{
+		globalEngine.seed(seed);
+	}
 
 } // namespace thor
